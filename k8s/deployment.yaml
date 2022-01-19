@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: production
+  name: reservation-service
+  labels:
+    app: reservation-service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: reservation-service
+  template:
+    metadata:
+      labels:
+        app: reservation-service
+    spec:
+      nodeSelector:
+        alpha.eksctl.io/nodegroup-name: "managed-ng-private"
+      containers:
+        - name: reservation-service
+          image: 718762496685.dkr.ecr.ap-south-1.amazonaws.com/sariska/reservation-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              memory: 100Mi
+              cpu: 100m
+            requests:
+              memory: 100Mi
+              cpu: 100m
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 10
+          volumeMounts:
+            - mountPath: /var/lib/reservation
+              name: reservation-service-pv
+              readOnly: false
+          env:
+            - name: PORT
+              value: "8080"
+            - name: NODE_ENV
+              value: "production"
+            - name: AWS_ACCESS_KEY_ID
+              value: "AKIA2OWMVKKWQCXTAJRJ"
+            - name: AWS_SECRET_ACCESS_KEY
+              value: "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"
+            - name: SECRET_MANAGEMENT_SERVICE_PRIVATE_KEY_URL
+              value: "http://secret-management-service.production.svc.cluster.local/api/v1/secret/private/key"
+            - name: SECRET_MANAGEMENT_SERVICE_PUBLIC_KEY_URL
+              value: "http://secret-management-service.production.svc.cluster.local/api/v1/secret/public/key"
+            - name: ENCRYPT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: reservation-service-secrets
+                  key: ENCRYPT_PASSWORD
+            - name: TURNCREDENTIALS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: reservation-service-secrets
+                  key: TURNCREDENTIALS_SECRET
+            - name: SERVICE_TOKEN_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: reservation-service-secrets
+                  key: SERVICE_TOKEN_SECRET
+          volumes:
+            - name: reservation-service-pv
+              persistentVolumeClaim:
+                claimName: reservation-service-pvc          

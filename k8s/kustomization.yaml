@@ -1,0 +1,4 @@
+resources:
+   - deployment.yaml
+   - service.yaml
+   - misc-service-secrets.yaml
