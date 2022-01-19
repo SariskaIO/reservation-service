@@ -72,7 +72,7 @@ spec:
                 secretKeyRef:
                   name: reservation-service-secrets
                   key: SERVICE_TOKEN_SECRET
-          volumes:
-            - name: reservation-service-pv
-              persistentVolumeClaim:
-                claimName: reservation-service-pvc          
+      volumes:
+        - name: reservation-service-pv
+          persistentVolumeClaim:
+            claimName: reservation-service-pvc          
