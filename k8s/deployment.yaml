@@ -11,7 +11,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: reservation-service
@@ -41,32 +41,19 @@ spec:
               port: 8080
             initialDelaySeconds: 10
           volumeMounts:
-            - mountPath: /var/lib/reservation
+            - mountPath: /data
               name: reservation-service-pv
-              readOnly: false
           env:
+            - name: PUBLIC_URL
+              value: "https://meet.sariska.io/"
             - name: PORT
               value: "8080"
             - name: NODE_ENV
               value: "production"
-            - name: AWS_ACCESS_KEY_ID
-              value: "AKIA2OWMVKKWQCXTAJRJ"
-            - name: AWS_SECRET_ACCESS_KEY
-              value: "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"
             - name: SECRET_MANAGEMENT_SERVICE_PRIVATE_KEY_URL
               value: "http://secret-management-service.production.svc.cluster.local/api/v1/secret/private/key"
             - name: SECRET_MANAGEMENT_SERVICE_PUBLIC_KEY_URL
               value: "http://secret-management-service.production.svc.cluster.local/api/v1/secret/public/key"
-            - name: ENCRYPT_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: reservation-service-secrets
-                  key: ENCRYPT_PASSWORD
-            - name: TURNCREDENTIALS_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: reservation-service-secrets
-                  key: TURNCREDENTIALS_SECRET
             - name: SERVICE_TOKEN_SECRET
               valueFrom:
                 secretKeyRef:
@@ -75,4 +62,4 @@ spec:
       volumes:
         - name: reservation-service-pv
           persistentVolumeClaim:
-            claimName: reservation-service-pvc          
+            claimName: reservation-service-pvc         

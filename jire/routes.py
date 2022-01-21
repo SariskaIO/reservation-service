@@ -7,14 +7,12 @@ from .forms import ReservationForm
 
 @app.route('/conferences', methods=['GET'])
 def show_conferences():
-
     return render_template('conferences.html', conferences=manager.all_conferences)
 
 
 @app.route('/')
 @app.route('/reservations')
 def home():
-
     form = ReservationForm()
     return render_template('reservations.html', form=form, reservations=manager.all_reservations)
 
@@ -65,6 +63,7 @@ def conference():
         return jsonify({'message': e.message}), status.HTTP_403_FORBIDDEN
     else:
         # Conference was created, send back details
+        print("output")
         return jsonify(output), status.HTTP_200_OK
 
 

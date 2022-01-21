@@ -11,6 +11,7 @@ COPY setup.py .
 
 RUN pip install Flask
 RUN python setup.py install
+RUN pip install pysqlite3 
 
 FROM python:3.9-alpine AS build-image
 

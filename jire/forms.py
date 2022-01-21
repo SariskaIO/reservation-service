@@ -24,6 +24,8 @@ class ReservationForm(FlaskForm):
 
     name = StringField(label='Room name', validators=_name_validators)
 
+    mail_owner = StringField(label='Owner Id', render_kw={"placeholder": "myId@sariska.io"})
+
     duration = DecimalField(label='Duration (minutes)', places=0, default=15)
 
     submit = SubmitField(label='Submit')

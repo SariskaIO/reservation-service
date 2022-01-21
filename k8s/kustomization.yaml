@@ -1,4 +1,5 @@
 resources:
    - deployment.yaml
    - service.yaml
-   - misc-service-secrets.yaml
+   - reservation-service-secrets.yaml
+   - reservation-service-pvc.yaml 

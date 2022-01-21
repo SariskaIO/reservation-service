@@ -19,18 +19,18 @@ class Manager:
     @property
     def all_reservations(self) -> list:
         """Get all reservations as dict"""
-
-        return self.session.query(Reservation) \
-                           .filter(Reservation.active is False) \
-                           .order_by(Reservation.id)
-
+        filter =  self.session.query(Reservation) \
+                           .filter(Reservation.active == False) \
+                           .order_by(Reservation.id)    
+        return filter
     @property
     def all_conferences(self) -> list:
         """Get all conferences as dict"""
 
-        return self.session.query(Reservation) \
-                           .filter(Reservation.active is True) \
+        filter =  self.session.query(Reservation) \
+                           .filter(Reservation.active == True) \
                            .order_by(Reservation.id)
+        return filter          
 
     def allocate(self, data: dict) -> dict:
         """Check if the conference request matches a reservation."""
@@ -65,7 +65,7 @@ class Manager:
 
         event = self.session.query(Reservation) \
                             .filter(or_(Reservation.name == name, Reservation.id == id)) \
-                            .filter(Reservation.active is True) \
+                            .filter(Reservation.active == True) \
                             .first()
 
         if event is None:
@@ -91,7 +91,7 @@ class Manager:
 
         return self.session.query(Reservation) \
                            .filter(or_(Reservation.name == name, Reservation.id == id)) \
-                           .filter(Reservation.active is True) \
+                           .filter(Reservation.active == True) \
                            .first()
 
     def delete_reservation(self, id: int = None, name: str = None) -> bool:
@@ -114,7 +114,7 @@ class Manager:
 
         return self.session.query(Reservation) \
                            .filter(or_(Reservation.name == name, Reservation.id == id)) \
-                           .filter(Reservation.active is False) \
+                           .filter(Reservation.active == False) \
                            .first()
 
     def add_reservation(self, data: dict) -> int:
@@ -137,7 +137,7 @@ class Manager:
         result = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
                              .filter(time_filter) \
-                             .filter(Reservation.active is True) \
+                             .filter(Reservation.active == True) \
                              .first()
 
         if result is not None:
@@ -154,7 +154,7 @@ class Manager:
                              .filter(Reservation.name == event.name) \
                              .filter(event.start_time <= Reservation.end_time) \
                              .filter(event.end_time >= Reservation.start_time) \
-                             .filter(Reservation.active is False)
+                             .filter(Reservation.active == False)
 
         if results.count():
             raise OverlappingReservation(events=results.all())
