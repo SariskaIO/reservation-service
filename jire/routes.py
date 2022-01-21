@@ -1,5 +1,5 @@
 from jire import app, manager, csrf
-from flask import request, render_template, redirect, url_for, jsonify, flash
+from flask import request, render_template, redirect, url_for, jsonify, flash, json
 from flask_api import status
 from .CustomExceptions import ConferenceExists, ConferenceNotAllowed, OverlappingReservation
 from .forms import ReservationForm
@@ -82,7 +82,21 @@ def conference_id(id):
             # Jicofo does not seem to care what is sent back
             return jsonify({'status': 'Failed'}), status.HTTP_403_FORBIDDEN
 
-@app.route('/room/<name>', methods=['GET'])
+@app.route('/room/<name>', methods=['GET', 'OPTIONS'])
 @csrf.exempt
-def conference_name(name):
-    return jsonify(manager.get_conference_by_name(name).get_jicofo_api_dict()), status.HTTP_200_OK,  {"Access-Control-Allow-Origin": "*"}
+def conference_name(name): 
+    res = ""
+    try:
+        res = manager.get_conference_by_name(name).get_jicofo_api_dict()
+    except Exception as e:
+        res = {}
+
+    response = app.response_class(headers={
+                                "Access-Control-Allow-Origin": "*",
+                                "Access-Control-Allow-Headers": "origin, x-requested-with, content-type",
+                                "Access-Control-Allow-Methods":"PUT, GET, POST, DELETE, OPTIONS"
+                                },
+                                response=json.dumps(res),
+                                status=status.HTTP_200_OK,
+                                mimetype='application/json')
+    return response
