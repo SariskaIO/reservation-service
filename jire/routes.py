@@ -81,3 +81,8 @@ def conference_id(id):
         else:
             # Jicofo does not seem to care what is sent back
             return jsonify({'status': 'Failed'}), status.HTTP_403_FORBIDDEN
+
+@app.route('/room/<name>', methods=['GET'])
+@csrf.exempt
+def conference_name(name):
+    return jsonify(manager.get_conference_by_name(name).get_jicofo_api_dict()), status.HTTP_200_OK

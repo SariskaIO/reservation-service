@@ -94,6 +94,13 @@ class Manager:
                            .filter(Reservation.active == True) \
                            .first()
 
+    def get_conference_by_name(self, name: str = None) -> Union[Reservation, None]:
+        """Get the conference information by conference name"""
+        return self.session.query(Reservation) \
+                            .filter(Reservation.name == name) \
+                            .filter(Reservation.active == True) \
+                            .first()
+
     def delete_reservation(self, id: int = None, name: str = None) -> bool:
         """Delete a reservation in the database"""
 
