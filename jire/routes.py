@@ -85,4 +85,4 @@ def conference_id(id):
 @app.route('/room/<name>', methods=['GET'])
 @csrf.exempt
 def conference_name(name):
-    return jsonify(manager.get_conference_by_name(name).get_jicofo_api_dict()), status.HTTP_200_OK
+    return jsonify(manager.get_conference_by_name(name).get_jicofo_api_dict()), status.HTTP_200_OK,  {"Access-Control-Allow-Origin": "*"}
