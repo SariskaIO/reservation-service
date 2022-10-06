@@ -1,4 +1,8 @@
-# Jire: Reservation System for Jitsi Meet
+![alt text](https://s3.ap-south-1.amazonaws.com/www.sariska.io/Screenshot+2022-10-06+at+10.59.14+PM.png)
+
+
+
+# Jire: Reservation System , pre-reserving the meetings it's like custom calender scheduling
 
 From [github.com/jitsi/jicofo](https://github.com/jitsi/jicofo/blob/master/doc/reservation.md):
 
@@ -74,9 +78,6 @@ This is a work in progress, pull requests are welcome.
 
 Install with `python setup.py develop` and run with `flask run`.
 
-
-
-![alt text](https://s3.ap-south-1.amazonaws.com/www.sariska.io/Screenshot+2022-10-06+at+10.59.14+PM.png)
 
 
 
