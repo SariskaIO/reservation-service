@@ -12,7 +12,6 @@ Base = declarative_base()
 
 class Reservation(Base):
     """The Reservation class holds room reservations and running conferences."""
-
     __tablename__ = 'reservations'
     id = Column(Integer, primary_key=True)
     name = Column(String)
@@ -23,11 +22,17 @@ class Reservation(Base):
     pin = Column(String)
     mail_owner = Column(String)
     active = Column(Boolean, default=False)
+    user_id = Column(String)
+    owner_id = Column(String)
+    user_name = Column(String)
+    email = Column(String)
+    avatar = Column(String)
+
 
     def __repr__(self):
         return f'<Reservation(id={self.id}, name={self.name}, start_time={self.start_time})>'
 
-    def from_dict(self, data: dict):
+    def from_dict(self, data: dict,current_user=None):
         """Set the data for this event with a dictionary. Use with the REST API and frontend."""
 
         self.name = data.get('name').replace(' ', '_').lower()
@@ -37,6 +42,10 @@ class Reservation(Base):
         self.set_start_time(start_time=data.get('start_time'))
         self.set_duration(duration=data.get('duration', -1))
         self.jitsi_server = os.environ.get('PUBLIC_URL')  # Public URL of the Jitsi web service
+        self.owner_id = current_user['context']['group']
+        self.user_id = current_user['context']['id']
+        self.email = current_user['context']['email']
+        self.avatar = current_user['context']['avatar']
 
         return self
 
