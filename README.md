@@ -1,75 +1,72 @@
-# Jire: Reservation System for Jitsi Meet
+# Sariska Meeting Scheduler
 
-From [github.com/jitsi/jicofo](https://github.com/jitsi/jicofo/blob/master/doc/reservation.md):
+The Sariska Meeting Scheduler is a REST API that allows you to efficiently allocate rooms for meetings while accounting for different time zones and specifying start and stop times. Additionally, the API provides functionality to list current running conferences and upcoming scheduled meetings. This README will guide you through the features and usage of the Sariska Meeting Scheduler.
 
-It is possible to connect Jicofo to external conference reservation system using REST API. Before new Jitsi-meet conference is created reservation system will be queried for room availability. The system is supposed to return positive or negative response which also contains conference duration. Jicofo will enforce conference duration and if the time limit is exceeded the conference will be terminated. If any authentication system is enabled then user's identity will be included in the reservation system query.
+## Table of Contents
 
-Jire does this for you.
+- [Features](#features)
+- [Getting Started](#getting-started)
+- [API Documentation](#api-documentation)
+- [Usage Examples](#usage-examples)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Features
-* Create room reservations
-* System checks for overlapping reservations and conferences
 
-### To be implemented
-* Edit or reschedule a reservation
-* Allow users to login and and manage their own conferences
+The Sariska Meeting Scheduler API offers the following key features:
 
-_Note:_ Conferences created without a reservation are set to a duration of 6 hours by default.
+1. **Create Room Reservations**: You can create room reservations for meetings, specifying room, date, start time, stop time, and time zone.
 
-## Run with Docker
+2. **Overlapping Reservation Checks**: The system automatically checks for overlapping reservations to prevent scheduling conflicts.
 
-```
-docker build -t jire:latest .
-docker run -v "$(pwd)"/log:/opt/venv/log "$(pwd)"/data:/opt/venv/data -p 8080:8080 jire:latest
-```
+3. **Conference Management**: The API provides functionality to list current running conferences and upcoming scheduled meetings.
 
-### Configure Jitsi Meet
+## Getting Started
 
-If you use [docker-jitsi-meet](https://github.com/jitsi/docker-jitsi-meet) you need to change the following lines in `.env`:
+### Prerequisites
 
-```
-JICOFO_RESERVATION_ENABLED=true
-JICOFO_RESERVATION_REST_BASE_URL=<url-to-your-jire>
-```
+Before you begin, ensure you have the following prerequisites:
 
-If you want to add Jire to your existing docker-jitsi-meet setup you could use the following compose file:
+- An active Sariska Meeting Scheduler API account.
+- API credentials (API key, token, etc.).
+- A development environment with a tool like Postman or a programming language that can make HTTP requests.
 
-```
-version: '3'
+### Installation
 
-services:
-  jire:
-    image: jire:latest
-    restart: unless-stopped
-    volumes:
-      - ./log:/opt/venv/log
-      - ./data:/opt/venv/data
-    ports:
-      - 127.0.0.1:8080:8080
-    environment:
-      - PUBLIC_URL=https://meet.example.com
+1. Clone this repository:
 
-networks:
-    default:
-        external:
-            name: jitsi-meet_meet.jitsi
-```
+   ```bash
+   git clone https://github.com/your-username/sariska-meeting-scheduler.git
 
-And set the endpoint in `.env` with
-```
-JICOFO_RESERVATION_REST_BASE_URL=http://jire:8080
-```
+   ```
 
-Restart jicofo and you're good to go.
-
-## Run with gunicorn
+ ```
+POST /api/meetings/reserve
+{
+  "room": "Conference Room A",
+  "date": "2023-10-20",
+  "start_time": "09:00",
+  "stop_time": "10:30",
+  "time_zone": "America/New_York"
+}
 
 ```
-pip install gunicorn
-exec gunicorn -b :8080 main:app
+
+```
+2.GET /api/conferences/current
+    Creating a Room Reservation:
+    POST /api/meetings/reserve
+    {
+      "room": "Conference Room A",
+      "date": "2023-10-20",
+      "start_time": "09:00",
+      "stop_time": "10:30",
+      "time_zone": "America/New_York"
+    }
+
 ```
 
-## Development
+```
+3.GET /api/conferences/current
 
-This is a work in progress, pull requests are welcome.
-
-Install with `python setup.py develop` and run with `flask run`.
+```
