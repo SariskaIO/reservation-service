@@ -12,7 +12,7 @@ build-release:
 
 push-release:
 			docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${NAMESPACE}/$(APP_NAME):latest
-
+			
 
 deploy-release:
 			kubectl kustomize ./k8s | kubectl apply -k ./k8s

@@ -3,7 +3,7 @@ from dateutil import parser as dp
 from typing import Union
 import os
 import pytz
-from .CustomExceptions import ConferenceNotAllowed
+from CustomExceptions import ConferenceNotAllowed
 from sqlalchemy import Column, Integer, String, DateTime, Interval, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -34,7 +34,6 @@ class Reservation(Base):
 
     def from_dict(self, data: dict,current_user=None):
         """Set the data for this event with a dictionary. Use with the REST API and frontend."""
-
         self.name = data.get('name').replace(' ', '_').lower()
         self.mail_owner = data.get('mail_owner')
         self.pin = data.get('pin')
@@ -42,10 +41,12 @@ class Reservation(Base):
         self.set_start_time(start_time=data.get('start_time'))
         self.set_duration(duration=data.get('duration', -1))
         self.jitsi_server = os.environ.get('PUBLIC_URL')  # Public URL of the Jitsi web service
+
         self.owner_id = current_user['context']['group']
-        self.user_id = current_user['context']['id']
-        self.email = current_user['context']['email']
-        self.avatar = current_user['context']['avatar']
+        self.user_id = current_user['context']['user']['id']
+        self.email = current_user['context']['user']['email']
+        self.user_name = current_user['context']['user']['name']
+        self.avatar = current_user['context']['user']['avatar']
 
         return self
 

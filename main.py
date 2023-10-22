@@ -1,1 +1,0 @@
-from jire import app

@@ -1,11 +1,11 @@
 from typing import Union
-from .CustomExceptions import ConferenceExists, OverlappingReservation
+from CustomExceptions import ConferenceExists, OverlappingReservation
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import logging
 import os
-
+from Reservation import Base, Reservation
 
 Session = sessionmaker()
 
@@ -17,7 +17,6 @@ class Manager:
         Session.configure(bind=engine)
         self.session = Session()
 
-    @property
     def all_reservations(self, current_user = None) -> list:
         """Get all reservations as dict"""
         owner_id = current_user['context']['group']
@@ -28,11 +27,11 @@ class Manager:
             .order_by(Reservation.id)
         return filter.all()
 
-    @property
     def all_conferences(self, current_user = None) -> list:
         """Get all conferences as dict"""
+        print(current_user, current_user['context']['group'])
         owner_id = current_user['context']['group']
-
+        print("owner_id", owner_id)
         filter = self.session.query(Reservation) \
             .filter(Reservation.active == True) \
             .filter(Reservation.owner_id == owner_id) \
@@ -44,7 +43,7 @@ class Manager:
         name = data.get('name')
 
         # Check for conflicting conference
-        event = self.get_conference(name=name, current_user)
+        event = self.get_conference(name=name, user=current_user)
         if event:
             self.__logger.info(f'Conference {event.id} already exists')
             raise ConferenceExists(event.id)
@@ -61,7 +60,7 @@ class Manager:
             self.__logger.debug(f'No reservation found for room {name}')
             event = self.add_conference(data)
             # Check for overlapping reservations for PostgreSQL
-            self.check_overlapping_reservations(event)
+            self.check_overlapping_reservations(event, current_user)
 
         return event.get_jicofo_api_dict()
 
@@ -85,7 +84,7 @@ class Manager:
 
     def add_conference(self, data: dict, current_user = None) -> str:
         """Add a conference to the database"""
-        event = Reservation().from_dict(data, current_user=current_user)
+        event = Reservation().from_dict(data, current_user)
         event.active = True
         self.session.add(event)
         self.session.commit()
