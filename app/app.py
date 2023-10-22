@@ -18,8 +18,8 @@ api = Api(app, version='1.0', title='Conference API', description='API for manag
 swagger = Swagger(app)
 manager = Manager()
 # Define a namespace
-conference_ns = api.namespace('/api/v1/scheduler/conference', description='Conference operations')
-reservation_ns = api.namespace('/api/v1/scheduler/reservation', description='Reservation operations')
+conference_ns = api.namespace('api/v1/scheduler/conference', description='Conference operations')
+reservation_ns = api.namespace('api/v1/scheduler/reservation', description='Reservation operations')
 conference_model = api.model('Conference', {
     'id': fields.Integer,
     'mail_owner': fields.String,
