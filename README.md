@@ -10,6 +10,6 @@ The Sariska Meeting Scheduler API offers the following key features:
 
 ## API Documentation
 
-You can access the Swagger documentation for the Sariska Meeting Scheduler API [here](https://schedular.dev.sariska.io/). The Swagger documentation provides detailed information on available endpoints, request and response formats, and example usage.
+You can access the Swagger documentation for the Sariska Meeting Scheduler API [here](https://scheduler.dev.sariska.io/). The Swagger documentation provides detailed information on available endpoints, request and response formats, and example usage.
 
 Please refer to the Swagger documentation for complete API reference and usage instructions.
