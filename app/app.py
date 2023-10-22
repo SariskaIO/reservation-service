@@ -22,7 +22,7 @@ conference_ns = api.namespace('/api/v1/scheduler/conference', description='Confe
 reservation_ns = api.namespace('/api/v1/scheduler/reservation', description='Reservation operations')
 conference_model = api.model('Conference', {
     'id': fields.Integer,
-    'owner_id': fields.String,
+    'mail_owner': fields.String,
     'date': fields.String,
     'location': fields.String,
     'name': fields.String,
@@ -102,26 +102,13 @@ class Conferences(Resource):
 @conference_ns.route('/<id>')
 class ConferenceByID(Resource):
     @token_required
-    @api.doc('Get a Conference by ID')
     @conference_ns.marshal_list_with(conference_model)
     def get(self, current_user, id):
         # Retrieve a specific conference by its ID
         conference_info = manager.get_conference(id, current_user).get_jicofo_api_dict()
         return conference_info, status.HTTP_200_OK
-    @token_required
-    @api.doc('Update a Conference by ID')
-    @conference_ns.marshal_list_with(conference_model)
-    def put(self, current_user, id):
-        # Update an existing conference by its ID based on the request data
-        conference_data = request.get_json()
-        updated_conference = manager.update_conference(id, conference_data, current_user)
-        if updated_conference:
-            return jsonify(updated_conference), status.HTTP_200_OK
-        else:
-            return jsonify({'message': 'Conference not found'}), status.HTTP_404_NOT_FOUND
 
     @token_required
-    @api.doc('Delete a Conference by ID')
     @conference_ns.marshal_list_with(conference_model)
     def delete(self, current_user, id):
         # Delete a conference by its ID
