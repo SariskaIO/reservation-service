@@ -76,7 +76,7 @@ def token_required(f):
 @conference_ns.route('')
 class Conferences(Resource):
     @token_required
-    @conference_ns.marshal_list_with(conference_model)
+    @api.doc(False)
     def post(self):
         try:
             # If a user enters the conference, check for reservations
@@ -102,6 +102,7 @@ class Conferences(Resource):
 @conference_ns.route('/<id>')
 class ConferenceByID(Resource):
     @token_required
+    @api.doc('Get Conferences by Id')
     @conference_ns.marshal_list_with(conference_model)
     def get(self, current_user, id):
         # Retrieve a specific conference by its ID
@@ -109,7 +110,7 @@ class ConferenceByID(Resource):
         return conference_info, status.HTTP_200_OK
 
     @token_required
-    @conference_ns.marshal_list_with(conference_model)
+    @api.doc(False)
     def delete(self, current_user, id):
         # Delete a conference by its ID
         try:
