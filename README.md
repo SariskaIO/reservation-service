@@ -29,7 +29,7 @@ cd app
 flask run
 
 ```
-# Production Deployment
+## Production Deployment
 
 ```bash 
 
@@ -37,7 +37,7 @@ export FLASK_ENV=production
 
 ```
 
-### Docker Deployment
+## Docker Deployment
 
 For containerized deployments, refer to the Makefile for instructions and commands on building and running your Docker containers.
 
