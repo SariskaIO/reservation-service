@@ -227,6 +227,7 @@ class Reservations(Resource):
     def get(current_user, self):
         # Replace with your database query to fetch reservations
         print("current_user", current_user)
+        app.logger.info('Request received for get reservataion')  # Log a message
         reservations = manager.all_reservations(current_user)
         return {'reservations': reservations}
 
