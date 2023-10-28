@@ -20,7 +20,5 @@ COPY /app/ .
 # Expose the port your application will run on
 EXPOSE 8080
 
-ENV PYTHONUNBUFFERED=1
-
 # Start the application using Gunicorn
 CMD ["/opt/venv/bin/gunicorn", "app:app", "--bind", "0.0.0.0:8080", "--access-logfile", "-"]
