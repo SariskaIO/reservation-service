@@ -16,6 +16,7 @@ from flask_cors import CORS  # Import Flask-CORS
 from flask import Flask, request, Response, g
 import uuid
 import json
+import logging
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +28,8 @@ authorizations = {
         'name': 'Authorization'
     }
 }
+logging.basicConfig(level=logging.INFO) 
+
 swagger = Swagger(app)
 api = Api(
     app,
@@ -233,10 +236,11 @@ class Reservations(Resource):
     @api.marshal_with(conference_model)
     def post(current_user, self):
         data = request.get_json()
+        app.logger.info('Request received for create reservataion')  # Log a message
         if data is None:
             return {'error': 'Invalid JSON data in request'}, status.HTTP_400_BAD_REQUEST
 
-        print("datadatadatadata", data)
+        app.logger.info('data', data)  # Log a message
         
         data['duration'] *= 60
         validation_errors = validate_reservation_data(data)
