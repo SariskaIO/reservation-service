@@ -1,5 +1,7 @@
 ## Features
 
+## ACCESS SWAGGER UI HERE: [here](https://scheduler.dev.sariska.io/)
+
 The Sariska Meeting Scheduler API offers the following key features:
 
 1. **Create Room Reservations**: You can create room reservations for meetings, specifying room, date, start time, stop time, and time zone.
@@ -22,9 +24,9 @@ If you're looking to develop with the Sariska Meeting Scheduler API, here are so
 **Set the Environment to Development:**
 ```bash
 
-export FLASK_ENV=development
-
 cd app
+
+export FLASK_ENV=development
 
 flask run
 
@@ -32,6 +34,8 @@ flask run
 ## Production Deployment
 
 ```bash 
+
+cd app
 
 export FLASK_ENV=production
 

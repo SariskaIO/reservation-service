@@ -12,12 +12,12 @@ Base = declarative_base()
 
 class Reservation(Base):
     """The Reservation class holds room reservations and running conferences."""
-    __tablename__ = 'reservations'
+    __tablename__ = 'public.reservations'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    duration = Column(Interval)
+    duration = Column(Integer)
     timezone = Column(String)
     pin = Column(String)
     mail_owner = Column(String)
@@ -41,12 +41,12 @@ class Reservation(Base):
         self.set_start_time(start_time=data.get('start_time'))
         self.set_duration(duration=data.get('duration', -1))
         self.jitsi_server = os.environ.get('PUBLIC_URL')  # Public URL of the Jitsi web service
-
+        print("current_user", current_user)
         self.owner_id = current_user['context']['group']
         self.user_id = current_user['context']['user']['id']
-        self.email = current_user['context']['user']['email']
-        self.user_name = current_user['context']['user']['name']
-        self.avatar = current_user['context']['user']['avatar']
+        self.user_name = current_user['context']['user'].get('name', None)
+        self.avatar = current_user['context']['user'].get('avatar', None)
+        self.email = current_user['context']['user'].get('email', None)
 
         return self
 
@@ -57,7 +57,7 @@ class Reservation(Base):
             start_time = start_time
         else:
             start_time = dp.isoparse(start_time)
-        timezone = pytz.timezone(self.timezone)
+        timezone = pytz.timezone(self.timezone.replace(' ', '_'))
         if (start_time.tzinfo is None or start_time.tzinfo.utcoffset(start_time) is None):
             start_time = timezone.localize(start_time)
         self.start_time = start_time

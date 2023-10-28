@@ -6,7 +6,6 @@ from sqlalchemy.ext.declarative import declarative_base
 import logging
 import os
 from Reservation import Base, Reservation
-
 Session = sessionmaker()
 
 class Manager:
@@ -140,6 +139,7 @@ class Manager:
 
     def add_reservation(self, data: dict, current_user = None) -> int:
         """Add a reservation to the database."""
+        print(data, current_user)
         event = Reservation().from_dict(data, current_user=current_user)
         # Check if this reservation overlaps with other reservations (same name)
         self.check_overlapping_reservations(event, current_user)
