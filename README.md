@@ -1,5 +1,5 @@
 
-## ACCESS SWAGGER UI HERE: [here](https://scheduler.dev.sariska.io/)
+## ACCESS SWAGGER UI: [here](https://scheduler.dev.sariska.io/)
 
 ## Features
 
