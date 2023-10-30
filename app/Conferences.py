@@ -2,6 +2,7 @@ from typing import Union
 from CustomExceptions import ConferenceExists, OverlappingReservation
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import between, or_, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 import logging
 import os
@@ -28,9 +29,7 @@ class Manager:
 
     def all_conferences(self, current_user = None) -> list:
         """Get all conferences as dict"""
-        print(current_user, current_user['context']['group'])
         owner_id = current_user['context']['group']
-        print("owner_id", owner_id)
         filter = self.session.query(Reservation) \
             .filter(Reservation.active == True) \
             .filter(Reservation.owner_id == owner_id) \
@@ -42,13 +41,13 @@ class Manager:
         name = data.get('name')
 
         # Check for conflicting conference
-        event = self.get_conference(name=name, user=current_user)
+        event = self.get_conference(name=name, current_user=current_user)
         if event:
             self.__logger.info(f'Conference {event.id} already exists')
             raise ConferenceExists(event.id)
 
         # Check for existing reservation
-        event = self.get_reservation(name=name)
+        event = self.get_reservation(name=name, current_user=current_user)
         if event:
             # Raise ConferenceNotAllowed if necessary
             event.check_allowed(owner=data.get('mail_owner'), start_time=data.get('start_time'))
@@ -57,7 +56,7 @@ class Manager:
             self.session.commit()
         else:
             self.__logger.debug(f'No reservation found for room {name}')
-            event = self.add_conference(data)
+            event = self.add_conference(data=data, current_user=current_user)
             # Check for overlapping reservations for PostgreSQL
             self.check_overlapping_reservations(event, current_user)
 
@@ -127,6 +126,23 @@ class Manager:
         self.session.commit()
         return True
 
+    def delete_reservation_by_id(self, id: int = None, name: str = None, current_user = None) -> bool:
+        owner_id = current_user['context']['group']
+
+        """Delete a reservation in the database"""
+        event = self.session.query(Reservation) \
+            .filter(Reservation.owner_id == owner_id) \
+            .filter(Reservation.id == id) \
+            .first()
+
+        if event is None:
+            self.__logger.error('Delete failed, could not find reservation in the database')
+            return False
+
+        self.session.delete(event)
+        self.session.commit()
+        return True
+
     def get_reservation(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
         """Get the reservation information"""
         owner_id = current_user['context']['group']
@@ -137,9 +153,19 @@ class Manager:
             .filter(Reservation.active == False) \
             .first()
 
+    def get_reservation_by_id(self, id: int = None, current_user = None) -> Union[Reservation, None]:
+        """Get the reservation information"""
+        owner_id = current_user['context']['group']
+
+        print("id,,,,,,,,,,,,,,,", id, current_user)
+        return self.session.query(Reservation) \
+            .filter(Reservation.owner_id == owner_id) \
+            .filter(Reservation.id == id) \
+            .filter(Reservation.active == False) \
+            .first()
+
     def add_reservation(self, data: dict, current_user = None) -> int:
         """Add a reservation to the database."""
-        print(data, current_user)
         event = Reservation().from_dict(data, current_user=current_user)
         # Check if this reservation overlaps with other reservations (same name)
         self.check_overlapping_reservations(event, current_user)
@@ -148,6 +174,9 @@ class Manager:
         self.session.add(event)
         self.session.commit()
         self.__logger.debug(f'Add reservation for room {event.name} to the database')
+                
+        print(event, current_user, data)
+
         return event
 
     def check_overlapping_conference(self, event: Reservation, current_user) -> bool:

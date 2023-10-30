@@ -73,6 +73,11 @@ token_response_model = api.model('TokenResponse', {
 
 reservation_ns = api.namespace('api/v1/scheduler/reservation', description='Reservation operations for upcoming scheduled meetings')
 conference_model = api.model('Conference', {
+    'id': fields.Integer(
+        required=True,
+        example=1245,
+        description='The id created reservation'
+    ),
     'mail_owner': fields.String(
         required=True,
         example='ekefk@ed.dd',
@@ -83,7 +88,7 @@ conference_model = api.model('Conference', {
         example='myroom123',
         description='The name of the conference room.'
     ),
-    'duration': fields.Integer(
+    'duration': fields.String(
         required=True,
         example=60,  # Sample duration in minutes
         description='The duration of the conference in minutes.'
@@ -104,6 +109,48 @@ conference_model = api.model('Conference', {
         description='The PIN for accessing the conference (optional).'
     ),
 })
+
+conference_model_with_only_id = api.model('Conference', {
+    'id': fields.Integer(
+        required=True,
+        example=1245,
+        description='The id created reservation'
+    )
+})
+
+conference_model_without_id = api.model('Conference', {
+    'mail_owner': fields.String(
+        required=True,
+        example='ekefk@ed.dd',
+        description='The email address of the conference owner.'
+    ),
+    'name': fields.String(
+        required=True,
+        example='myroom123',
+        description='The name of the conference room.'
+    ),
+    'duration': fields.String(
+        required=True,
+        example=60,  # Sample duration in minutes
+        description='The duration of the conference in minutes.'
+    ),
+    'start_time': fields.DateTime(
+        required=True,
+        example='2023-09-28T15:08',
+        description='The start time of the conference in ISO 8601 format.'
+    ),
+    'timezone': fields.String(
+        required=True,
+        example='America/New York',
+        default='America/New York',
+        description='The timezone of the conference.'
+    ),
+    'pin': fields.String(
+        example='1234',  # Remove required=True for an optional field
+        description='The PIN for accessing the conference (optional).'
+    ),
+})
+
 conference_ns = api.namespace('api/v1/scheduler/conference', description='Conference operations for currently running conferences')
 
 def token_required(f):
@@ -156,16 +203,26 @@ class GenerateToken(Resource):
         return {'message': 'Token generation route is documented in Swagger'}, status.HTTP_200_OK
 
 # ... (the rest of your Flask app code)
-
-
 @conference_ns.route('')
 class Conferences(Resource):
     @token_required
+    @api.doc('Get All Conferences', security='apikey')
+    @api.marshal_with(conference_model, as_list=True)
+    def get(current_user, self):
+        # Retrieve a list of all conferences
+        conferences = manager.all_conferences(current_user)
+        print("conferences", conferences)
+        return conferences
+
+    @token_required
     @api.doc(False)
-    def post(self):
+    def post(current_user, self):
+        conference_data = request.get_json()
+        print("current_user, self", conference_data, current_user)
         try:
             # If a user enters the conference, check for reservations
-            output = manager.allocate(conference_data)
+            output = manager.allocate(conference_data, current_user)
+            return output
         except ConferenceExists as e:
             # Conference already exists
             return jsonify({'conflict_id': e.id}), status.HTTP_409_CONFLICT
@@ -176,28 +233,19 @@ class Conferences(Resource):
             # Conference was created, send back details
             return jsonify(output), status.HTTP_200_OK
 
-    @token_required
-    @api.doc('Get All Conferences', security='apikey')
-    @reservation_ns.expect(conference_model)
-    @conference_ns.marshal_list_with(conference_model)
-    def get(self, current_user):
-        # Retrieve a list of all conferences
-        conferences = manager.all_conferences(current_user)
-        return {'conferences': conferences}
-
 @conference_ns.route('/<id>')
 class ConferenceByID(Resource):
     @token_required
     @api.doc('Get Conferences by Id', security='apikey')
     @conference_ns.marshal_list_with(conference_model)
-    def get(self, current_user, id):
+    def get(current_user, self, id):
         # Retrieve a specific conference by its ID
         conference_info = manager.get_conference(id, current_user).get_jicofo_api_dict()
         return conference_info, status.HTTP_200_OK
 
     @token_required
     @api.doc(False)
-    def delete(self, current_user, id):
+    def delete(current_user, self,  id):
         # Delete a conference by its ID
         try:
             if manager.delete_conference(id=id, current_user=current_user):
@@ -223,17 +271,18 @@ class ConferenceByName(Resource):
 class Reservations(Resource):
     @token_required
     @api.doc('Get Reservations', security='apikey')
-    @api.marshal_with(conference_model)
+    @api.marshal_with(conference_model, as_list=True)
     def get(current_user, self):
         # Replace with your database query to fetch reservations
         print("current_user", current_user)
         app.logger.info('Request received for get reservataion')  # Log a message
         reservations = manager.all_reservations(current_user)
-        return {'reservations': reservations}
+        print("reservations", reservations)
+        return reservations
 
     @token_required
     @api.doc('Create Reservation', security='apikey')
-    @reservation_ns.expect(conference_model)
+    @reservation_ns.expect(conference_model_without_id)
     @api.marshal_with(conference_model)
     def post(current_user, self):
         data = request.get_json()
@@ -243,7 +292,6 @@ class Reservations(Resource):
 
         app.logger.info('data', data)  # Log a message
         
-        data['duration'] *= 60
         validation_errors = validate_reservation_data(data)
         if validation_errors:
             return {'error': 'Validation failed', 'validation_errors': validation_errors}, status.HTTP_400_BAD_REQUEST
@@ -251,24 +299,44 @@ class Reservations(Resource):
         if 'start_time' not in data or 'duration' not in data or 'name' not in data:
             return {'error': 'Missing required fields in JSON data'}, status.HTTP_400_BAD_REQUEST
 
-        data['duration'] *= 60
+        data['duration'] = 60*int(data['duration'])
         try:
-            manager.add_reservation(data, current_user)
-            return {'message': 'Reservation created successfully'}, status.HTTP_201_CREATED
+            response = manager.add_reservation(data, current_user)
+            return response, status.HTTP_201_CREATED
         except OverlappingReservation as e:
             return {'error': e.message}, status.HTTP_400_BAD_REQUEST
 
 @reservation_ns.route('/<id>')
 class Reservation(Resource):
     @token_required
-    @api.doc('Delete Reservation',security='apikey')
-    @api.marshal_with(conference_model)
+    @api.doc('Delete Reservation by Id',security='apikey')
+    @api.marshal_with(conference_model_with_only_id, as_list=False)
     def delete(current_user, self, id):
         try:
-            manager.delete_reservation(id=id, current_user=current_user)
-            return {'message': 'Reservation deleted successfully'}, status.HTTP_200_OK
+            manager.delete_reservation_by_id(id=id, name=None, current_user=current_user)
+            return {'id': id}, status.HTTP_200_OK
         except Exception as e:
             return {'error': str(e)}, status.HTTP_400_BAD_REQUEST
+
+    @token_required
+    @api.doc('Get Reservation by Id', security='apikey')
+    @conference_ns.marshal_with(conference_model)
+    def get(current_user, self, id):
+        # Retrieve a specific reservation by its ID
+        print(current_user, id)
+        conference_info = manager.get_reservation_by_id(id, current_user).get_jicofo_api_dict()
+        return conference_info, status.HTTP_200_OK
+
+@reservation_ns.route('/room/<name>')
+class Reservation(Resource):
+    @token_required
+    @api.doc('Get Reservation by name', security='apikey')
+    @conference_ns.marshal_with(conference_model)
+    def get(current_user, self, name):
+        # Retrieve a specific reservation by its name
+        conference_info = manager.get_reservation(None, name, current_user).get_jicofo_api_dict()
+        return conference_info, status.HTTP_200_OK
+
 
 def validate_reservation_data(data):
     validation_errors = {}

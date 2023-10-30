@@ -4,7 +4,7 @@ from typing import Union
 import os
 import pytz
 from CustomExceptions import ConferenceNotAllowed
-from sqlalchemy import Column, Integer, String, DateTime, Interval, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Interval, Boolean, Interval
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -12,12 +12,12 @@ Base = declarative_base()
 
 class Reservation(Base):
     """The Reservation class holds room reservations and running conferences."""
-    __tablename__ = 'public.reservations'
+    __tablename__ = 'reservations'
     id = Column(Integer, primary_key=True)
     name = Column(String)
     start_time = Column(DateTime)
     end_time = Column(DateTime)
-    duration = Column(Integer)
+    duration = Column(Interval)
     timezone = Column(String)
     pin = Column(String)
     mail_owner = Column(String)
@@ -87,15 +87,14 @@ class Reservation(Base):
     @property
     def start_time_aware(self) -> datetime:
         """Get the timezone-aware start date"""
-
-        timezone = pytz.timezone(self.timezone)
+        timezone = pytz.timezone(self.timezone.replace(' ', '_'))
         return timezone.localize(self.start_time)
 
     @property
     def end_time_aware(self) -> datetime:
         """Get the timezone-aware end date"""
-
-        timezone = pytz.timezone(self.timezone)
+        
+        timezone = pytz.timezone(self.timezone.replace(' ', '_'))
         return timezone.localize(self.end_time)
 
     @property
