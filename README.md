@@ -1,6 +1,7 @@
-## Features
 
 ## ACCESS SWAGGER UI HERE: [here](https://scheduler.dev.sariska.io/)
+
+## Features
 
 The Sariska Meeting Scheduler API offers the following key features:
 
