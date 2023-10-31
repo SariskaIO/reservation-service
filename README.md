@@ -47,3 +47,9 @@ export FLASK_ENV=production
 For containerized deployments, refer to the Makefile for instructions and commands on building and running your Docker containers.
 
 We hope this brief guide helps you get started with the Sariska Meeting Scheduler API. For in-depth details and examples, please refer to our Swagger documentation. If you have any questions or need further assistance, feel free to reach out to our support team. Happy scheduling!
+
+## Screenshots
+
+
+![AG Grid demo](https://s3.ap-south-1.amazonaws.com/sariska.io/Screenshot+2023-10-31+at+8.20.51+PM.png)
+
