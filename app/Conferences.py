@@ -186,7 +186,6 @@ class Manager:
         time_filter = between(event.start_time, Reservation.start_time, Reservation.end_time)
         result = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
-                             .filter(Reservation.owner_id == owner_id) \
                              .filter(time_filter) \
                              .filter(Reservation.active is True) \
                              .first()
@@ -204,7 +203,6 @@ class Manager:
 
         results = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
-                             .filter(Reservation.owner_id == owner_id) \
                              .filter(event.start_time <= Reservation.end_time) \
                              .filter(event.end_time >= Reservation.start_time) \
                              .filter(Reservation.active is False)

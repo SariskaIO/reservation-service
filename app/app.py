@@ -210,7 +210,7 @@ class Conferences(Resource):
     @api.marshal_with(conference_model, as_list=True)
     def get(current_user, self):
         # Retrieve a list of all conferences
-        conferences = manager.all_conferences(current_user)
+        conferences = manager.all_conferences(current_user=current_user)
         print("conferences", conferences)
         return conferences
 
@@ -218,10 +218,9 @@ class Conferences(Resource):
     @api.doc(False)
     def post(current_user, self):
         conference_data = request.get_json()
-        print("current_user, self", conference_data, current_user)
         try:
             # If a user enters the conference, check for reservations
-            output = manager.allocate(conference_data, current_user)
+            output = manager.allocate(data=conference_data, current_user=current_user)
             return output
         except ConferenceExists as e:
             # Conference already exists
@@ -240,7 +239,7 @@ class ConferenceByID(Resource):
     @conference_ns.marshal_list_with(conference_model)
     def get(current_user, self, id):
         # Retrieve a specific conference by its ID
-        conference_info = manager.get_conference(id, current_user).get_jicofo_api_dict()
+        conference_info = manager.get_conference(id=id, current_user=current_user).get_jicofo_api_dict()
         return conference_info, status.HTTP_200_OK
 
     @token_required
@@ -262,7 +261,7 @@ class ConferenceByName(Resource):
     @api.doc('Get Conference by Name', security='apikey')
     def get(current_user, self, name):
         try:
-            conference = manager.get_conference_by_name(name, current_user)
+            conference = manager.get_conference_by_name(name=name, current_user=current_user)
             return conference.get_jicofo_api_dict(), status.HTTP_200_OK
         except Exception as e:
             return {}, status.HTTP_404_NOT_FOUND
@@ -276,7 +275,7 @@ class Reservations(Resource):
         # Replace with your database query to fetch reservations
         print("current_user", current_user)
         app.logger.info('Request received for get reservataion')  # Log a message
-        reservations = manager.all_reservations(current_user)
+        reservations = manager.all_reservations(current_user=current_user)
         print("reservations", reservations)
         return reservations
 
@@ -301,7 +300,7 @@ class Reservations(Resource):
 
         data['duration'] = 60*int(data['duration'])
         try:
-            response = manager.add_reservation(data, current_user)
+            response = manager.add_reservation(data=data, current_user=current_user)
             return response, status.HTTP_201_CREATED
         except OverlappingReservation as e:
             return {'error': e.message}, status.HTTP_400_BAD_REQUEST
@@ -324,7 +323,7 @@ class Reservation(Resource):
     def get(current_user, self, id):
         # Retrieve a specific reservation by its ID
         print(current_user, id)
-        conference_info = manager.get_reservation_by_id(id, current_user).get_jicofo_api_dict()
+        conference_info = manager.get_reservation_by_id(id=id, current_user=current_user).get_jicofo_api_dict()
         return conference_info, status.HTTP_200_OK
 
 @reservation_ns.route('/room/<name>')
@@ -334,7 +333,7 @@ class Reservation(Resource):
     @conference_ns.marshal_with(conference_model)
     def get(current_user, self, name):
         # Retrieve a specific reservation by its name
-        conference_info = manager.get_reservation(None, name, current_user).get_jicofo_api_dict()
+        conference_info = manager.get_reservation(name=name, current_user=current_user).get_jicofo_api_dict()
         return conference_info, status.HTTP_200_OK
 
 
