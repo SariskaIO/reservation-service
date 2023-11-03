@@ -32,22 +32,22 @@ Please refer to the Swagger documentation for complete API reference and usage i
 
 ## Reservation Fields
 
-### mail_owner:
+#### mail_owner:
    - Represents the user ID of the user creating the reservation, e.g., 108118294675469988012@sariska.io.
 
-### name:
+#### name:
    - Represents the room name or conference name.
 
-### duration:
+#### duration:
    - Represents the duration of the conference.
 
-### start_time:
+#### start_time:
    - Represents the start time of the conference in the format of date and time.
 
-### timezone:
+#### timezone:
    - Represents the time zone of the user creating the reservation. [Check here](https://gist.github.com/brajendrak00068/09f938a4cd63a064dfb459e10948ceb9) for a list of supported time zones.
 
-### pin:
+#### pin:
    - Conference PIN (if any).
 
 
