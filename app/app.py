@@ -72,6 +72,14 @@ token_response_model = api.model('TokenResponse', {
 })
 
 reservation_ns = api.namespace('api/v1/scheduler/reservation', description='Reservation operations for upcoming scheduled meetings')
+domain = None
+value = os.environ.get("DEPLOYMENT_ENV")
+
+if value == "development":
+    domain = "dev.sariska.io"
+elif value == "production":
+    domain = "sariska.io"
+    
 conference_model = api.model('Conference', {
     'id': fields.Integer(
         required=True,
@@ -80,7 +88,7 @@ conference_model = api.model('Conference', {
     ),
     'mail_owner': fields.String(
         required=True,
-        example='ekefk@ed.dd',
+        example='owner_user_id@'+domain,
         description='The email address of the conference owner.'
     ),
     'name': fields.String(
@@ -121,7 +129,7 @@ conference_model_with_only_id = api.model('Conference', {
 conference_model_without_id = api.model('Conference', {
     'mail_owner': fields.String(
         required=True,
-        example='ekefk@ed.dd',
+        example='owner_user_id@'+domain,
         description='The email address of the conference owner.'
     ),
     'name': fields.String(
@@ -157,7 +165,8 @@ def token_required(f):
     @wraps(f)
     def decorator(*args, **kwargs):
         token = None
-
+        public_key_url  = None
+        decoded_token = None
         if 'Authorization' in request.headers:
             token = request.headers['Authorization']
 
@@ -190,6 +199,10 @@ def token_required(f):
         except jwt.InvalidTokenError:
             return jsonify({'message': public_key_data})
         except Exception as e:
+            print('error decoding',e)
+            print("decoded_token",decoded_token)
+            print("public_key_url", public_key_url)
+
             return jsonify({'message': e})
 
     return decorator
@@ -217,7 +230,13 @@ class Conferences(Resource):
     @token_required
     @api.doc(False)
     def post(current_user, self):
-        conference_data = request.get_json()
+        request_body = request.data  # Raw request body as bytes
+        # Decode the bytes to a string (assuming UTF-8 encoding)
+        request_body_str = request_body.decode('utf-8')
+        # Parse the string as a JSON object
+        conference_data = json.loads(request_body_str)
+        print("conference_data", conference_data)
+        output = None
         try:
             # If a user enters the conference, check for reservations
             output = manager.allocate(data=conference_data, current_user=current_user)
@@ -230,6 +249,8 @@ class Conferences(Resource):
             return jsonify({'message': e.message}), status.HTTP_403_FORBIDDEN
         else:
             # Conference was created, send back details
+            print("output",output)
+            
             return jsonify(output), status.HTTP_200_OK
 
 @conference_ns.route('/<id>')
@@ -238,9 +259,19 @@ class ConferenceByID(Resource):
     @api.doc('Get Conferences by Id', security='apikey')
     @conference_ns.marshal_list_with(conference_model)
     def get(current_user, self, id):
-        # Retrieve a specific conference by its ID
-        conference_info = manager.get_conference(id=id, current_user=current_user).get_jicofo_api_dict()
-        return conference_info, status.HTTP_200_OK
+            # Retrieve a specific conference by its ID    
+        user_agent = request.headers.get('User-Agent')
+        conference_info = None
+
+        if 'Prosody' in user_agent:
+            conference_info = manager.get_conference_without_owner_id(id=id, current_user=current_user).get_jicofo_api_dict()
+        else:
+            conference_info = manager.get_conference_without_owner_id(id=id, current_user=current_user)
+
+        if conference_info is not None:
+            return conference_info, status.HTTP_200_OK
+        else:
+            return None, status.HTTP_404_NOT_FOUND
 
     @token_required
     @api.doc(False)
@@ -262,7 +293,7 @@ class ConferenceByName(Resource):
     def get(current_user, self, name):
         try:
             conference = manager.get_conference_by_name(name=name, current_user=current_user)
-            return conference.get_jicofo_api_dict(), status.HTTP_200_OK
+            return conference, status.HTTP_200_OK
         except Exception as e:
             return {}, status.HTTP_404_NOT_FOUND
 
@@ -273,10 +304,8 @@ class Reservations(Resource):
     @api.marshal_with(conference_model, as_list=True)
     def get(current_user, self):
         # Replace with your database query to fetch reservations
-        print("current_user", current_user)
         app.logger.info('Request received for get reservataion')  # Log a message
         reservations = manager.all_reservations(current_user=current_user)
-        print("reservations", reservations)
         return reservations
 
     @token_required
@@ -286,6 +315,7 @@ class Reservations(Resource):
     def post(current_user, self):
         data = request.get_json()
         app.logger.info('Request received for create reservataion')  # Log a message
+        
         if data is None:
             return {'error': 'Invalid JSON data in request'}, status.HTTP_400_BAD_REQUEST
 
@@ -323,7 +353,7 @@ class Reservation(Resource):
     def get(current_user, self, id):
         # Retrieve a specific reservation by its ID
         print(current_user, id)
-        conference_info = manager.get_reservation_by_id(id=id, current_user=current_user).get_jicofo_api_dict()
+        conference_info = manager.get_reservation_by_id(id=id, current_user=current_user)
         return conference_info, status.HTTP_200_OK
 
 @reservation_ns.route('/room/<name>')
@@ -333,7 +363,7 @@ class Reservation(Resource):
     @conference_ns.marshal_with(conference_model)
     def get(current_user, self, name):
         # Retrieve a specific reservation by its name
-        conference_info = manager.get_reservation(name=name, current_user=current_user).get_jicofo_api_dict()
+        conference_info = manager.get_reservation(name=name, current_user=current_user)
         return conference_info, status.HTTP_200_OK
 
 
@@ -386,7 +416,7 @@ def after_request(resp):
         # Serialize the modified data back to JSON
         modified_data = json.dumps(original_data)
         # Create a new response object with the modified JSON data
-        new_resp = app.response_class(
+        new_resp = app.response_class( 
             response=modified_data,
             status=resp.status,
             headers=resp.headers,

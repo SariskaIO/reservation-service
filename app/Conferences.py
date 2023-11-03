@@ -41,13 +41,14 @@ class Manager:
         name = data.get('name')
 
         # Check for conflicting conference
-        event = self.get_conference(name=name, current_user=current_user)
+        event = self.get_conference_without_owner_id(name=name, current_user=current_user)
+        print("get_conference_without_owner_id event", event)
         if event:
             self.__logger.info(f'Conference {event.id} already exists')
             raise ConferenceExists(event.id)
 
         # Check for existing reservation
-        event = self.get_reservation(name=name, current_user=current_user)
+        event = self.get_reservation_without_owner_id(name=name, current_user=current_user)
         if event:
             # Raise ConferenceNotAllowed if necessary
             event.check_allowed(owner=data.get('mail_owner'), start_time=data.get('start_time'))
@@ -64,11 +65,8 @@ class Manager:
 
     def delete_conference(self, id: int = None, name: str = None, current_user=None) -> bool:
         """Delete a conference in the database"""
-        owner_id = current_user['context']['group']
-
         event = self.session.query(Reservation) \
-            .filter(Reservation.owner_id == owner_id) \
-            .filter(Reservation.name == name) \
+            .filter(Reservation.id == id) \
             .filter(Reservation.active == True) \
             .first()
 
@@ -88,6 +86,16 @@ class Manager:
         self.session.commit()
         self.__logger.debug(f'Add conference {event.id} - {event.name} to the database')
         return event
+
+
+    def get_conference_without_owner_id(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
+        """Get the conference information"""
+        owner_id = current_user['context']['group']
+
+        return self.session.query(Reservation) \
+            .filter(Reservation.name == name) \
+            .filter(Reservation.active == True) \
+            .first()
 
     def get_conference(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
         """Get the conference information"""
@@ -131,7 +139,6 @@ class Manager:
 
         """Delete a reservation in the database"""
         event = self.session.query(Reservation) \
-            .filter(Reservation.owner_id == owner_id) \
             .filter(Reservation.id == id) \
             .first()
 
@@ -142,6 +149,16 @@ class Manager:
         self.session.delete(event)
         self.session.commit()
         return True
+
+    def get_reservation_without_owner_id(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
+        """Get the reservation information"""
+        owner_id = current_user['context']['group']
+
+        return self.session.query(Reservation) \
+            .filter(Reservation.name == name) \
+            .filter(Reservation.active == False) \
+            .first()
+
 
     def get_reservation(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
         """Get the reservation information"""
@@ -156,7 +173,6 @@ class Manager:
     def get_reservation_by_id(self, id: int = None, current_user = None) -> Union[Reservation, None]:
         """Get the reservation information"""
         owner_id = current_user['context']['group']
-
         print("id,,,,,,,,,,,,,,,", id, current_user)
         return self.session.query(Reservation) \
             .filter(Reservation.owner_id == owner_id) \
@@ -171,18 +187,20 @@ class Manager:
         self.check_overlapping_reservations(event, current_user)
         # Check if this reservation might start before active conferences with the same name end.
         self.check_overlapping_conference(event, current_user)
+
+        print("add_reservation", event)
+        print("add_reservation", event.start_time)
+        print("timezone", event.timezone)
+
         self.session.add(event)
         self.session.commit()
         self.__logger.debug(f'Add reservation for room {event.name} to the database')
-                
-        print(event, current_user, data)
 
         return event
 
     def check_overlapping_conference(self, event: Reservation, current_user) -> bool:
         """Check if start and end time of the new entry overlap with an existing reservation."""
         owner_id = current_user['context']['group']
-
         time_filter = between(event.start_time, Reservation.start_time, Reservation.end_time)
         result = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
@@ -200,7 +218,6 @@ class Manager:
     def check_overlapping_reservations(self, event: Reservation, current_user) -> bool:
         """Check if start time of the new entry overlaps with existing conferences."""
         owner_id = current_user['context']['group']
-
         results = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
                              .filter(event.start_time <= Reservation.end_time) \

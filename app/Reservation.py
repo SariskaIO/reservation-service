@@ -57,9 +57,14 @@ class Reservation(Base):
             start_time = start_time
         else:
             start_time = dp.isoparse(start_time)
-        timezone = pytz.timezone(self.timezone.replace(' ', '_'))
-        if (start_time.tzinfo is None or start_time.tzinfo.utcoffset(start_time) is None):
-            start_time = timezone.localize(start_time)
+
+        print("start_time", start_time)
+
+        # timezone = pytz.timezone(self.timezone.replace(' ', '_'))
+        # if (start_time.tzinfo is None or start_time.tzinfo.utcoffset(start_time) is None):
+        #     print("timezone.localize(start_time)", timezone.localize(start_time), start_time)
+        #     start_time = timezone.localize(start_time)
+
         self.start_time = start_time
 
     def set_duration(self, duration: Union[timedelta, str], default: int = 21600):
@@ -130,7 +135,8 @@ class Reservation(Base):
             'id': self.id,
             'name': self.name,
             'start_time': self.get_SimpleDateFormat_start_time(),
-            'duration': self.get_duration_in_seconds()
+            'duration': self.get_duration_in_seconds(),
+            'timezone': self.timezone,
         }
         if self.mail_owner is not None:
             output['mail_owner'] = self.mail_owner
@@ -143,8 +149,11 @@ class Reservation(Base):
         """Check if the conference is allowed to start.
         The conference is check for owner and/or starting time."""
 
+        print("self.start_time_aware", self.start_time_aware, dp.isoparse(start_time))
+
         if start_time is None:
             start_time = datetime.now(datetime.timezone.utc).isoformat()
+            
         if self.mail_owner != owner:
             raise ConferenceNotAllowed('This user is not allowed to start this conference!')
         if self.start_time_aware > dp.isoparse(start_time):
