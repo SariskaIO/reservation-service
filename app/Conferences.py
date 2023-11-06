@@ -152,8 +152,6 @@ class Manager:
 
     def get_reservation_without_owner_id(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
         """Get the reservation information"""
-        owner_id = current_user['context']['group']
-
         return self.session.query(Reservation) \
             .filter(Reservation.name == name) \
             .filter(Reservation.active == False) \

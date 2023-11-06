@@ -240,6 +240,8 @@ class Conferences(Resource):
         try:
             # If a user enters the conference, check for reservations
             output = manager.allocate(data=conference_data, current_user=current_user)
+            print("Got output checking the output content")
+            print(str(output))
             return json.dumps(output), status.HTTP_200_OK
         except ConferenceExists as e:
             # Conference already exists
