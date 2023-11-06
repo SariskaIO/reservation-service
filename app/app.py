@@ -240,7 +240,7 @@ class Conferences(Resource):
         try:
             # If a user enters the conference, check for reservations
             output = manager.allocate(data=conference_data, current_user=current_user)
-            return jsonify(output), status.HTTP_200_OK
+            return json.dumps(output), status.HTTP_200_OK
         except ConferenceExists as e:
             # Conference already exists
             return jsonify({'conflict_id': e.id}), status.HTTP_409_CONFLICT
