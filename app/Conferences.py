@@ -56,14 +56,15 @@ class Manager:
             self.__logger.debug(f'Reservation for room {name} checked, conference can start.')
             event.active = True
             self.session.commit()
+            print("Db commit successed successfully")
         else:
             self.__logger.debug(f'No reservation found for room {name}')
             event = self.add_conference(data=data, current_user=current_user)
             # Check for overlapping reservations for PostgreSQL
             self.check_overlapping_reservations(event, current_user)
-        data = event.get_jicofo_api_dict()
-        print("get_conference_without_owner_id event for data", str(data))
-        return data
+        datatest = event.get_jicofo_api_dict()
+        print("get_conference_without_owner_id event for data", str(datatest))
+        return datatest
 
     def delete_conference(self, id: int = None, name: str = None, current_user=None) -> bool:
         """Delete a conference in the database"""
