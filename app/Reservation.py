@@ -153,10 +153,10 @@ class Reservation(Base):
 
         if start_time is None:
             start_time = datetime.now(datetime.timezone.utc).isoformat()
-            
+        print("Owner emails", self.mail_owner, owner)
         if self.mail_owner != owner:
             raise ConferenceNotAllowed('This user is not allowed to start this conference!')
         if self.start_time_aware > dp.isoparse(start_time):
             raise ConferenceNotAllowed('The conference has not started yet.')
-
+        print("Meeting is allowed returning true")
         return True
