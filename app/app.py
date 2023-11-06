@@ -240,18 +240,14 @@ class Conferences(Resource):
         try:
             # If a user enters the conference, check for reservations
             output = manager.allocate(data=conference_data, current_user=current_user)
-            return output
+            return jsonify(output), status.HTTP_200_OK
         except ConferenceExists as e:
             # Conference already exists
             return jsonify({'conflict_id': e.id}), status.HTTP_409_CONFLICT
         except ConferenceNotAllowed as e:
             # Confernce cannot be created: user not allowed or conference has not started
             return jsonify({'message': e.message}), status.HTTP_403_FORBIDDEN
-        else:
-            # Conference was created, send back details
-            print("output",output)
             
-            return jsonify(output), status.HTTP_200_OK
 
 @conference_ns.route('/<id>')
 class ConferenceByID(Resource):
