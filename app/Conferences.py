@@ -49,6 +49,7 @@ class Manager:
 
         # Check for existing reservation
         event = self.get_reservation_without_owner_id(name=name, current_user=current_user)
+        print("get_conference_without_owner_id event for get_reservation_without_owner_id", event)
         if event:
             # Raise ConferenceNotAllowed if necessary
             event.check_allowed(owner=data.get('mail_owner'), start_time=data.get('start_time'))
@@ -60,8 +61,9 @@ class Manager:
             event = self.add_conference(data=data, current_user=current_user)
             # Check for overlapping reservations for PostgreSQL
             self.check_overlapping_reservations(event, current_user)
-
-        return event.get_jicofo_api_dict()
+        data = event.get_jicofo_api_dict()
+        print("get_conference_without_owner_id event for data", str(data))
+        return data
 
     def delete_conference(self, id: int = None, name: str = None, current_user=None) -> bool:
         """Delete a conference in the database"""

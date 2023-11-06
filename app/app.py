@@ -249,6 +249,8 @@ class Conferences(Resource):
         except ConferenceNotAllowed as e:
             # Confernce cannot be created: user not allowed or conference has not started
             return jsonify({'message': e.message}), status.HTTP_403_FORBIDDEN
+        except:
+            print("Got exception in post confrence")
             
 
 @conference_ns.route('/<id>')
