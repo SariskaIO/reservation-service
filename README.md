@@ -20,7 +20,7 @@ Please refer to the Swagger documentation for complete API reference and usage i
 
 ## Workflow
 
-1. Check if the conference already exists (e.g., Conference xyz already exists).
+1. Check if the conference already exists (e.g., Conference xyz already exists reject it).
 
 2. If a reservation exists:
    
