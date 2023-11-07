@@ -42,7 +42,7 @@ Please refer to the Swagger documentation for complete API reference and usage i
    - Represents the duration of the conference.
 
 #### start_time:
-   - Represents the start time of the conference in the format of date and time.
+   - Represents the start time of the conference in the format of date and time. example: 2023-09-28T15:08:00
 
 #### timezone:
    - Represents the time zone of the user creating the reservation. [Check here](https://gist.github.com/brajendrak00068/09f938a4cd63a064dfb459e10948ceb9) for a list of supported time zones.
