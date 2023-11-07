@@ -200,7 +200,6 @@ class Manager:
 
     def check_overlapping_conference(self, event: Reservation, current_user) -> bool:
         """Check if start and end time of the new entry overlap with an existing reservation."""
-        owner_id = current_user['context']['group']
         time_filter = between(event.start_time, Reservation.start_time, Reservation.end_time)
         result = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
@@ -208,6 +207,7 @@ class Manager:
                              .filter(Reservation.active is True) \
                              .first()
 
+        print("check_overlapping_conference results:", result)
         if result is not None:
             message = f'A conference with this name currently exists. Your reservation can only \
                         start once the event is over, which will be at {result.end_time_formatted}'
@@ -217,13 +217,13 @@ class Manager:
 
     def check_overlapping_reservations(self, event: Reservation, current_user) -> bool:
         """Check if start time of the new entry overlaps with existing conferences."""
-        owner_id = current_user['context']['group']
         results = self.session.query(Reservation) \
                              .filter(Reservation.name == event.name) \
                              .filter(event.start_time <= Reservation.end_time) \
                              .filter(event.end_time >= Reservation.start_time) \
                              .filter(Reservation.active is False)
 
+        print("check_overlapping_reservations results:", results)
         if results.count():
             raise OverlappingReservation(events=results.all())
 

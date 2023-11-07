@@ -66,6 +66,24 @@ token_request_model = api.model('TokenRequest', {
     'scope': fields.String(description='Pass scope of token (messaging, media, sariska, or leave it blank)', example='')
 })
 
+conference_exist_model = api.model('ConferenceExists', {
+    'conflict_id': fields.String(description='Conference already exists')
+})
+
+
+conference_not_allowed_model = api.model('ConferenceNotAllowed', {
+    'message': fields.String(description='Conference not allowed')
+})
+
+conference_delete_model = api.model('conferenceDeleteModel', {
+    'status': fields.String(description='conference delete model'),
+})
+
+conference_error_model = api.model('conferencErrorModel', {
+    'error': fields.String(description='conference error'),
+    'id': fields.String(description='conference error')
+})
+
 # Define the response model
 token_response_model = api.model('TokenResponse', {
     'token': fields.String(description='Generated JWT token')
@@ -229,6 +247,8 @@ class Conferences(Resource):
 
     @token_required
     @api.doc(False)
+    @reservation_ns.expect(conference_exist_model, conference_model, conference_not_allowed_model)
+    @api.marshal_with(conference_model)
     def post(current_user, self):
         request_body = request.data  # Raw request body as bytes
         # Decode the bytes to a string (assuming UTF-8 encoding)
