@@ -1,1 +1,391 @@
-{"swagger": "2.0", "host":"api.dev.sariska.io","basePath": "/", "paths": {"/api/v1/misc/generate-token": {"post": {"responses": {"200": {"description": "Success", "schema": {"$ref": "#/definitions/TokenResponse"}}}, "operationId": "post_generate_token", "parameters": [{"name": "payload", "required": true, "in": "body", "schema": {"$ref": "#/definitions/TokenRequest"}}, {"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/misc/generate-token"]}}, "/api/v1/scheduler/conference": {"get": {"responses": {"200": {"description": "Success", "schema": {"type": "array", "items": {"$ref": "#/definitions/Conference"}}}}, "operationId": "Get All Conferences", "parameters": [{"name": "payload", "required": true, "in": "body", "schema": {"$ref": "#/definitions/Conference"}}, {"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/scheduler/conference"]}}, "/api/v1/scheduler/conference/room/{name}": {"parameters": [{"name": "name", "in": "path", "required": true, "type": "string"}], "get": {"responses": {"200": {"description": "Success", "schema": {"$ref": "#/definitions/Conference"}}}, "operationId": "Get Conference by Name", "parameters": [{"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/scheduler/conference"]}}, "/api/v1/scheduler/conference/{id}": {"parameters": [{"name": "id", "in": "path", "required": true, "type": "string"}], "get": {"responses": {"200": {"description": "Success", "schema": {"type": "array", "items": {"$ref": "#/definitions/Conference"}}}}, "operationId": "Get Conferences by Id", "parameters": [{"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/scheduler/conference"]}}, "/api/v1/scheduler/reservation": {"get": {"responses": {"200": {"description": "Success", "schema": {"$ref": "#/definitions/Conference"}}}, "operationId": "Get Reservations", "parameters": [{"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/scheduler/reservation"]}, "post": {"responses": {"200": {"description": "Success", "schema": {"$ref": "#/definitions/Conference"}}}, "operationId": "Create Reservation", "parameters": [{"name": "payload", "required": true, "in": "body", "schema": {"$ref": "#/definitions/Conference"}}, {"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/scheduler/reservation"]}}, "/api/v1/scheduler/reservation/{id}": {"parameters": [{"name": "id", "in": "path", "required": true, "type": "string"}], "delete": {"responses": {"200": {"description": "Success", "schema": {"$ref": "#/definitions/Conference"}}}, "operationId": "Delete Reservation", "parameters": [{"name": "X-Fields", "in": "header", "type": "string", "format": "mask", "description": "An optional fields mask"}], "tags": ["api/v1/scheduler/reservation"]}}}, "info": {"title": "Conference API", "version": "1.0", "description": "API for managing conferences", "termsOfService": "https://www.sariska.io/terms-of-service"}, "produces": ["application/json"], "consumes": ["application/json"], "securityDefinitions": {"apikey": {"type": "apiKey", "in": "header", "name": "Authorization"}}, "tags": [{"name": "api/v1/misc/generate-token", "description": "Generate JWT Token"}, {"name": "api/v1/scheduler/reservation", "description": "Reservation operations"}, {"name": "api/v1/scheduler/conference", "description": "Conference operations"}], "definitions": {"TokenRequest": {"required": ["apiKey"], "properties": {"apiKey": {"type": "string", "description": "Please pass apiKey tied to your sariska account", "example": "iufwenufewifweifiuTbddhbdjhjfbjfjwfjwfj"}, "user": {"$ref": "#/definitions/User"}, "exp": {"type": "string", "description": "Pass exp claim of JWT token", "example": "24 hours"}, "nbf": {"type": "string", "description": "Pass nbf claim of JWT token", "example": ""}, "scope": {"type": "string", "description": "Pass scope of token (messaging, media, sariska, or leave it blank)", "example": ""}}, "type": "object"}, "User": {"properties": {"id": {"type": "string", "description": "User ID of a participant if known", "example": "ytyVgh"}, "name": {"type": "string", "description": "Name of a participant if known", "example": "Nick"}, "email": {"type": "string", "description": "Email ID of participant if known", "example": "nick@gmail.com"}, "avatar": {"type": "string", "description": "Avatar of a participant if known", "example": "https://some-storage-location/nick.jpg"}, "moderator": {"type": "boolean", "description": "Is the given participant a moderator", "example": false}}, "type": "object"}, "TokenResponse": {"properties": {"token": {"type": "string", "description": "Generated JWT token"}}, "type": "object"}, "Conference": {"required": ["duration", "mail_owner", "name", "start_time", "timezone"], "properties": {"mail_owner": {"type": "string", "description": "The email address of the conference owner.", "example": "ekefk@ed.dd"}, "name": {"type": "string", "description": "The name of the conference room.", "example": "myroom123"}, "duration": {"type": "integer", "description": "The duration of the conference in minutes.", "example": 60}, "start_time": {"type": "string", "format": "date-time", "description": "The start time of the conference in ISO 8601 format.", "example": "2023-09-28T15:08:00"}, "timezone": {"type": "string", "description": "The timezone of the conference.", "default": "America/New York", "example": "America/New York"}, "pin": {"type": "string", "description": "The PIN for accessing the conference (optional).", "example": "1234"}}, "type": "object"}}, "responses": {"ParseError": {"description": "When a mask can't be parsed"}, "MaskError": {"description": "When any error occurs on mask"}}}
+{
+    "swagger": "2.0",
+    "host": "api.dev.sariska.io",
+    "basePath": "/",
+    "paths": {
+      "/api/v1/misc/generate-token": {
+        "post": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/TokenResponse"
+              }
+            }
+          },
+          "operationId": "post_generate_token",
+          "parameters": [
+            {
+              "name": "payload",
+              "required": true,
+              "in": "body",
+              "schema": {
+                "$ref": "#/definitions/TokenRequest"
+              }
+            },
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/misc/generate-token"
+          ]
+        }
+      },
+      "/api/v1/scheduler/conference": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Conference"
+                }
+              }
+            }
+          },
+          "operationId": "Get All Conferences",
+          "parameters": [
+            {
+              "name": "payload",
+              "required": true,
+              "in": "body",
+              "schema": {
+                "$ref": "#/definitions/Conference"
+              }
+            },
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/scheduler/conference"
+          ]
+        }
+      },
+      "/api/v1/scheduler/conference/room/{name}": {
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/Conference"
+              }
+            }
+          },
+          "operationId": "Get Conference by Name",
+          "parameters": [
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/scheduler/conference"
+          ]
+        }
+      },
+      "/api/v1/scheduler/conference/{id}": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Conference"
+                }
+              }
+            }
+          },
+          "operationId": "Get Conferences by Id",
+          "parameters": [
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/scheduler/conference"
+          ]
+        }
+      },
+      "/api/v1/scheduler/reservation": {
+        "get": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/Conference"
+              }
+            }
+          },
+          "operationId": "Get Reservations",
+          "parameters": [
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/scheduler/reservation"
+          ]
+        },
+        "post": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/Conference"
+              }
+            }
+          },
+          "operationId": "Create Reservation",
+          "parameters": [
+            {
+              "name": "payload",
+              "required": true,
+              "in": "body",
+              "schema": {
+                "$ref": "#/definitions/Conference"
+              }
+            },
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/scheduler/reservation"
+          ]
+        }
+      },
+      "/api/v1/scheduler/reservation/{id}": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "delete": {
+          "responses": {
+            "200": {
+              "description": "Success",
+              "schema": {
+                "$ref": "#/definitions/Conference"
+              }
+            }
+          },
+          "operationId": "Delete Reservation",
+          "parameters": [
+            {
+              "name": "X-Fields",
+              "in": "header",
+              "type": "string",
+              "format": "mask",
+              "description": "An optional fields mask"
+            }
+          ],
+          "tags": [
+            "api/v1/scheduler/reservation"
+          ]
+        }
+      }
+    },
+    "info": {
+      "title": "Conference API",
+      "version": "1.0",
+      "description": "API for managing conferences",
+      "termsOfService": "https://www.sariska.io/terms-of-service"
+    },
+    "produces": [
+      "application/json"
+    ],
+    "consumes": [
+      "application/json"
+    ],
+    "securityDefinitions": {
+      "apikey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Authorization"
+      }
+    },
+    "tags": [
+      {
+        "name": "api/v1/misc/generate-token",
+        "description": "Generate JWT Token"
+      },
+      {
+        "name": "api/v1/scheduler/reservation",
+        "description": "Reservation operations"
+      },
+      {
+        "name": "api/v1/scheduler/conference",
+        "description": "Conference operations"
+      }
+    ],
+    "definitions": {
+      "TokenRequest": {
+        "required": [
+          "apiKey"
+        ],
+        "properties": {
+          "apiKey": {
+            "type": "string",
+            "description": "Please pass apiKey tied to your sariska account",
+            "example": "iufwenufewifweifiuTbddhbdjhjfbjfjwfjwfj"
+          },
+          "user": {
+            "$ref": "#/definitions/User"
+          },
+          "exp": {
+            "type": "string",
+            "description": "Pass exp claim of JWT token",
+            "example": "24 hours"
+          },
+          "nbf": {
+            "type": "string",
+            "description": "Pass nbf claim of JWT token",
+            "example": ""
+          },
+          "scope": {
+            "type": "string",
+            "description": "Pass scope of token (messaging, media, sariska, or leave it blank)",
+            "example": ""
+          }
+        },
+        "type": "object"
+      },
+      "User": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User ID of a participant if known",
+            "example": "ytyVgh"
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of a participant if known",
+            "example": "Nick"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email ID of participant if known",
+            "example": "nick@gmail.com"
+          },
+          "avatar": {
+            "type": "string",
+            "description": "Avatar of a participant if known",
+            "example": "https://some-storage-location/nick.jpg"
+          },
+          "moderator": {
+            "type": "boolean",
+            "description": "Is the given participant a moderator",
+            "example": false
+          }
+        },
+        "type": "object"
+      },
+      "TokenResponse": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Generated JWT token"
+          }
+        },
+        "type": "object"
+      },
+      "Conference": {
+        "required": [
+          "duration",
+          "mail_owner",
+          "name",
+          "start_time",
+          "timezone"
+        ],
+        "properties": {
+          "mail_owner": {
+            "type": "string",
+            "description": "The email address of the conference owner.",
+            "example": "ekefk@ed.dd"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the conference room.",
+            "example": "myroom123"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "The duration of the conference in minutes.",
+            "example": 60
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The start time of the conference in ISO 8601 format.",
+            "example": "2023-09-28T15:08:00"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "The timezone of the conference.",
+            "default": "America/New York",
+            "example": "America/New York"
+          },
+          "pin": {
+            "type": "string",
+            "description": "The PIN for accessing the conference (optional).",
+            "example": "1234"
+          }
+        },
+        "type": "object"
+      }
+    },
+    "responses": {
+      "ParseError": {
+        "description": "When a mask can't be parsed"
+      },
+      "MaskError": {
+        "description": "When any error occurs on mask"
+      }
+    }
+  }
