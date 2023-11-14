@@ -284,9 +284,9 @@ class ConferenceByID(Resource):
         conference_info = None
 
         if 'Prosody' in user_agent:
-            conference_info = manager.get_conference_without_owner_id(id=id, current_user=current_user).get_jicofo_api_dict()
+            conference_info = manager.get_conference_with_id(id=id, current_user=current_user).get_jicofo_api_dict()
         else:
-            conference_info = manager.get_conference_without_owner_id(id=id, current_user=current_user)
+            conference_info = manager.get_conference_with_id(id=id, current_user=current_user)
 
         if conference_info is not None:
             return conference_info, status.HTTP_200_OK

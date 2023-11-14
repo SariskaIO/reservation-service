@@ -97,6 +97,15 @@ class Manager:
             .filter(Reservation.active == True) \
             .first()
 
+    def get_conference_with_id(self, id: int = None, current_user = None) -> Union[Reservation, None]:
+        """Get the conference information"""
+        owner_id = current_user['context']['group']
+
+        return self.session.query(Reservation) \
+            .filter(Reservation.id == id) \
+            .filter(Reservation.active == True) \
+            .first()
+
     def get_conference(self, id: int = None, name: str = None, current_user = None) -> Union[Reservation, None]:
         """Get the conference information"""
         owner_id = current_user['context']['group']
