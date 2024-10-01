@@ -17,15 +17,22 @@ class Manager:
         Session.configure(bind=engine)
         self.session = Session()
 
-    def all_reservations(self, current_user = None) -> list:
+    def all_reservations(self, current_user=None) -> list:
         """Get all reservations as dict"""
         owner_id = current_user['context']['group']
 
-        filter = self.session.query(Reservation) \
-            .filter(Reservation.owner_id == owner_id) \
-            .filter(Reservation.active == False) \
-            .order_by(Reservation.id)
-        return filter.all()
+        try:
+            filter_result = self.session.query(Reservation) \
+                .filter(Reservation.owner_id == owner_id) \
+                .filter(Reservation.active == False) \
+                .order_by(Reservation.id)
+
+            return filter_result.all()
+        except Exception as e:
+            logging.error(f"Error fetching reservations: {e}")
+            self.session.rollback()
+            raise
+
 
     def all_conferences(self, current_user = None) -> list:
         """Get all conferences as dict"""
